@@ -11,7 +11,7 @@ class App extends Component {
       <div className="App">
         <Grid>
           <Row>
-            <Col md={11} mdOffset={1}>
+            <Col md={12}>
               <SingleItem />
               <BestMargins />
             </Col>

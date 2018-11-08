@@ -102,8 +102,10 @@ runescape.post('/items', async (req, res) => {
 			oSBItem.sort((a, b) => {
 				return (a.sell_average - a.buy_average) - (b.sell_average - b.buy_average)
 			})
-			
+
 			var filteredArray = oSBItem.filter((item) => {
+				item.profit = item.buy_average - item.sell_average;
+				//console.log(item.profit);
 				if(item.buy_average != 0 &&
 					item.sell_average != 0 &&
 					(item.buy_average - item.sell_average) > 0 &&
@@ -116,12 +118,11 @@ runescape.post('/items', async (req, res) => {
 					return false;
 				})
 				oSBItem = filteredArray;
-				console.log(oSBItem);
+				//console.log(oSBItem);
 			})
 			.catch(err => {
 				console.log(err);
 			})
-
 			//console.log(obj);
 			res.send(oSBItem);
 		} catch (e) {

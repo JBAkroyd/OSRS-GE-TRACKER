@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import axios from "axios";
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Button, Table, Checkbox } from 'react-bootstrap';
+import { FormGroup, ControlLabel, FormControl, HelpBlock, Button, Checkbox } from 'react-bootstrap';
+import ReactTable from 'react-table';
+import 'react-table/react-table.css'
 
 function FieldGroup({ id, label, help, ...props }) {
   return (
@@ -12,35 +14,45 @@ function FieldGroup({ id, label, help, ...props }) {
   );
 }
 
+const columns = [{
+  Header: '#',
+  accessor: 'id'
+},{
+  Header: 'Name',
+  accessor: 'name',
+  width: 230,
+},{
+  Header: 'Store Price',
+  accessor: 'sp'
+},{
+  Header: 'Buy Price',
+  accessor: 'sell_average'
+},{
+  Header: 'Sell Price',
+  accessor: 'buy_average'
+},{
+  Header: 'Profit',
+  accessor: 'profit'
+},{
+  Header: 'Buy Quantity',
+  accessor: 'buy_quantity'
+},{
+  Header: 'Sell Quantity',
+  accessor: 'sell_quantity'
+},]
+
 class BestMargins extends Component {
   constructor(props) {
     super(props);
     this.state = {
       items: [],
-      totalGold: '',
-      sales: '',
+      totalGold: 9999999999,
+      sales: 0,
       member: false
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.itemInformation = this.itemInformation.bind(this);
-    this.itemRow = this.itemRow.bind(this);
     this.handleChange = this.handleChange.bind(this);
-
-  }
-
-  itemRow(item) {
-    return (
-      <tr>
-      <td>{ item.id }</td>
-      <td>{ item.name }</td>
-      <td>{ item.sp }</td>
-      <td>{ item.sell_average }</td>
-      <td>{ item.buy_average }</td>
-      <td>{ item.buy_average - item.sell_average }</td>
-      <td>{ item.buy_quantity }</td>
-      <td>{ item.sell_quantity }</td>
-      </tr>
-    );
   }
 
   async handleChange(e) {
@@ -93,23 +105,10 @@ class BestMargins extends Component {
         }}>Member</Checkbox>
         <Button type="submit" bsStyle="primary">Submit</Button>
         </form>
-        <Table striped bordered condensed hover responsive>
-        <thead>
-        <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Store Price</th>
-        <th>Buy Price</th>
-        <th>Sell Price</th>
-        <th>Profit</th>
-        <th>Buy Quantity</th>
-        <th>Sell Quantity</th>
-        </tr>
-        </thead>
-        <tbody>
-        {this.state.items.map((item) => this.itemRow(item))}
-        </tbody>
-        </Table>
+        <ReactTable
+          defaultSortDesc={true}
+          data={items}
+          columns={columns} />
         </div>
       );
     }

@@ -10,7 +10,8 @@
     "react-bootstrap": "^0.32.4",
     "react-dom": "^16.6.1",
     "react-predictive-input": "^1.2.5",
-    "react-scripts": "2.1.1"
+    "react-scripts": "2.1.1",
+    "react-table": "^6.8.6"
   },
   "scripts": {
     "start": "react-scripts start",
