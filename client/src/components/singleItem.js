@@ -1,19 +1,10 @@
 import React, { Component } from 'react';
 import axios from "axios";
-import { FormGroup, ControlLabel, FormControl, HelpBlock, Button, Table } from 'react-bootstrap';
+import { Button, Table } from 'react-bootstrap';
 import Autocomplete from 'react-autocomplete';
 
 const rSItems = require('../assets/rs_items.json');
 
-function FieldGroup({ id, label, help, ...props }) {
-  return (
-    <FormGroup controlId={id}>
-      <ControlLabel>{label}</ControlLabel>
-      <FormControl {...props} />
-      {help && <HelpBlock>{help}</HelpBlock>}
-    </FormGroup>
-  );
-}
 class SingleItem extends Component {
   constructor(props) {
     super(props);
@@ -30,9 +21,8 @@ class SingleItem extends Component {
   }
 
   handleID(e) {
-    console.log(e);
     this.setState({ name: e });
-    var obj = this.state.allItems.find((element) => {
+    this.state.allItems.find((element) => {
       if(element.name === e){
         this.setState({ itemID: element.id });
       }
@@ -51,7 +41,6 @@ class SingleItem extends Component {
     const res = await axios.post('/runescape/item', {itemID: this.state.itemID});
     //console.log(res);
     const body = await res.data;
-    console.log(body);
     this.setState({ item: body });
   }
 
@@ -81,6 +70,7 @@ class SingleItem extends Component {
           <thead>
             <tr>
               <th>#</th>
+              <th>Name</th>
               <th>Price</th>
               <th>Todays Change</th>
               <th>Daily Price</th>
@@ -94,7 +84,8 @@ class SingleItem extends Component {
           </thead>
           <tbody>
             <tr>
-              <td>{ this.state.itemID }</td>
+              <td>{ this.state.item.id }</td>
+              <td>{ this.state.item.name }</td>
               <td>{ this.state.item.price }</td>
               <td>{ this.state.item.todayChange }</td>
               <td>{ this.state.item.dailyPrice }</td>
