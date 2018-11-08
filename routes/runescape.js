@@ -1,27 +1,30 @@
 const runescape = require('express').Router();
 const request = require('request-promise');
-const url = 'http://services.runescape.com/m=itemdb_oldschool';
-const detail = url + '/api/catalogue/detail.json?item=';
-const graph = url + '/api/graph/';
+const rsurl = 'http://services.runescape.com/m=itemdb_oldschool';
+const detail = rsurl + '/api/catalogue/detail.json?item=';
+const graph = rsurl + '/api/graph/';
 const stats = require('stats-lite');
-const rSItems = require('../rs_items.json');
+const rSItems = require('../client/src/assets/rs_items.json');
+const osBuddyUrl = 'https://storage.googleapis.com/osbuddy-exchange/summary.json';
 
 runescape.post('/item', async (req, res) => {
 	try {
+
 		//console.log(rSItems);
 		var itemID = req.body.itemID;
-		console.log(itemID);
+		//console.log(itemID);
 
 		var detailsURL = detail + itemID;
 		console.log(detailsURL);
 		var graphURL = graph + itemID + '.json';
 		console.log(graphURL);
-
+		console.log(osBuddyUrl);
 
 		var rSItemDetails;
 		var rSItemGraph;
 		var rSItemGraphDaily;
 		var rSItemGraphAverage;
+		var oSBItem;
 
 		await request(detailsURL)
 		.then(async res => {
@@ -34,12 +37,8 @@ runescape.post('/item', async (req, res) => {
 			console.log(err);
 		})
 
-		//console.log(rSItemDetails);
-
 		await request(graphURL)
 		.then(async res => {
-			//console.log(res);
-			//console.log(response);
 			rSItemGraph = res;
 			rSItemGraph = JSON.parse(rSItemGraph);
 		})
@@ -47,54 +46,38 @@ runescape.post('/item', async (req, res) => {
 			console.log(err);
 		})
 
-		rSItemGraphDaily = Object.values(rSItemGraph.daily);
-		rSItemGraphAverage = Object.values(rSItemGraph.average);
-		rSItemGraph = rSItemGraphDaily.concat(rSItemGraphAverage);
+		await request(osBuddyUrl)
+		.then(async res => {
+			oSBItem = res;
+			oSBItem = JSON.parse(oSBItem);
+			oSBItem = Object.values(oSBItem);
+			var elementPos = oSBItem.map((x) => {return x.id; }).indexOf(itemID);
+			oSBItem = oSBItem[elementPos];
+			console.log(oSBItem);
+		})
+		.catch(err => {
+			console.log(err);
+		})
 
-
-		// console.log(rSItemGraphDaily);
-		//console.log(rSItemGraphAverage);
-		//console.log(rSItemGraph);
-
+		rSItemGraphDaily = rSItemGraph.daily
+		rSItemGraphDaily = rSItemGraphDaily[Object.keys(rSItemGraphDaily)[Object.keys(rSItemGraphDaily).length - 1]]
+		rSItemGraphAverage = rSItemGraph.average
+		rSItemGraphAverage = rSItemGraphAverage[Object.keys(rSItemGraphAverage)[Object.keys(rSItemGraphAverage).length - 1]]
 
 		var price = rSItemDetails.current.price;
-		//console.log('price: ' + price);
-		var min = Math.min.apply(null, rSItemGraph);
-		//console.log('minimum: ' + min);
-		var max = Math.max.apply(null, rSItemGraph);
-		//console.log('maximum: ' + max);
-		var mean = Math.round(stats.mean(rSItemGraph));
-		//console.log('mean: ' + mean);
-		var median = Math.round(stats.median(rSItemGraph));
-		//console.log('median: ' + median);
-		var mode = stats.mode(rSItemGraph);
 
-		var modeMin = mode;
-		var modeMax = mode;
-		if(mode.length > 1){
-			modeMin = Math.min.apply(null, mode);
-			modeMax = Math.max.apply(null, mode);
-			mode = 0;
-
-		}
-		//console.log('mode min: ' + modeMin);
-		//console.log('mode max: ' + modeMax);
-		//console.log('mode: ' + mode);
-		var range = max - min;
-		//console.log('range: ' + range);
-		var lowerQuartile = Math.round(stats.percentile(rSItemGraph, 0.50));
-		//console.log('lq: ' + fortyP);
-		var upperQuartile = Math.round(stats.percentile(rSItemGraph, 0.70));
-		//console.log('uq: ' + sixtyP);
-		var obj = { price: price, minimum: min, maximum: max, mean: mean, median: median, mode: mode, modeMin: modeMin, modeMax: modeMax, range: range, lowerQuartile: lowerQuartile, upperQuartile: upperQuartile};
+		var todayChange = rSItemDetails.today.price;
+		var dailyPrice = rSItemGraphDaily;
+		var averagePrice = rSItemGraphAverage;
+		//console.log(oSBItem);
+		var storePrice = oSBItem.sp;
+		var buyPriceAv = oSBItem.buy_average;
+		var sellPriceAv = oSBItem.sell_average;
+		var buyQ = oSBItem.buy_quantity;
+		var sellQ = oSBItem.sell_quantity;
+		var obj = { price: price, todayChange: todayChange, dailyPrice: dailyPrice, averagePrice: averagePrice, storePrice: storePrice, buyPriceAv: buyPriceAv, sellPriceAv: sellPriceAv, buyQ: buyQ, sellQ: sellQ};
 		//console.log(obj);
 		res.send(obj);
-		//var histogram = stats.histogram(rSItemGraph, 10);
-		//console.log('histogram: ' + histogram.values);
-
-		// res.send(
-		//   `Item ID: ${req.body.itemID}`,
-		// );
 	} catch (e) {
 		throw new Error(e);
 	}
@@ -102,11 +85,9 @@ runescape.post('/item', async (req, res) => {
 
 runescape.post('/items', async (req, res) => {
 	try {
-		//console.log(req.body);
-
+		//console.log(rSItems);
 		var itemID = req.body.itemID;
-
-		console.log(itemID);
+		//console.log(itemID);
 
 		var detailsURL = detail + itemID;
 		console.log(detailsURL);
@@ -130,63 +111,28 @@ runescape.post('/items', async (req, res) => {
 			console.log(err);
 		})
 
-		//console.log(rSItemDetails);
-
 		await request(graphURL)
 		.then(async res => {
-			//console.log(res);
-			//console.log(response);
 			rSItemGraph = res;
 			rSItemGraph = JSON.parse(rSItemGraph);
 		})
 		.catch(err => {
-			console.log(err);
+			console.log(err.response.headers);
 		})
 
-		rSItemGraphDaily = Object.values(rSItemGraph.daily);
-		rSItemGraphAverage = Object.values(rSItemGraph.average);
-		rSItemGraph = rSItemGraphDaily.concat(rSItemGraphAverage);
-
-
-		// console.log(rSItemGraphDaily);
-		//console.log(rSItemGraphAverage);
-		//console.log(rSItemGraph);
-
+		rSItemGraphDaily = rSItemGraph.daily
+		rSItemGraphDaily = rSItemGraphDaily[Object.keys(rSItemGraphDaily)[Object.keys(rSItemGraphDaily).length - 1]]
+		rSItemGraphAverage = rSItemGraph.average
+		rSItemGraphAverage = rSItemGraphAverage[Object.keys(rSItemGraphAverage)[Object.keys(rSItemGraphAverage).length - 1]]
 
 		var price = rSItemDetails.current.price;
-		console.log('price: ' + price);
-		var min = Math.min.apply(null, rSItemGraph);
-		console.log('minimum: ' + min);
-		var max = Math.max.apply(null, rSItemGraph);;
-		console.log('maximum: ' + max);
-		var mean = stats.mean(rSItemGraph);
-		console.log('mean: ' + mean);
-		var median = stats.median(rSItemGraph);
-		console.log('median: ' + median);
-		var mode = stats.mode(rSItemGraph);
 
-		var modeMin = mode;
-		var modeMax = mode;
-		if(mode.length > 1){
-			modeMin = Math.min.apply(null, mode);
-			modeMax = Math.max.apply(null, mode);
-			mode = 0;
-		}
-		console.log('mode min: ' + modeMin);
-		console.log('mode max: ' + modeMax);
-		console.log('mode: ' + mode);
-		var range = max - min;
-		console.log('range: ' + range);
-		var twentyP = stats.percentile(rSItemGraph, 0.40);
-		console.log('lq: ' + twentyP);
-		var eightyP = stats.percentile(rSItemGraph, 0.60);
-		console.log('uq: ' + eightyP);
-		//var histogram = stats.histogram(rSItemGraph, 10);
-		//console.log('histogram: ' + histogram.values);
-
-		// res.send(
-		//   `Item ID: ${req.body.itemID}`,
-		// );
+		var todayChange = rSItemDetails.today.price;
+		var dailyPrice = rSItemGraphDaily;
+		var averagePrice = rSItemGraphAverage;
+		var obj = { price: price, todayChange: todayChange, dailyPrice: dailyPrice, averagePrice: averagePrice};
+		console.log(obj);
+		res.send(obj);
 	} catch (e) {
 		throw new Error(e);
 	}

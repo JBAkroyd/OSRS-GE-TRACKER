@@ -7,8 +7,11 @@
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
+    "osbuddy-api-wrapper": "^1.1.1",
+    "react-predictive-input": "^1.2.5",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "stats-lite": "^2.2.0"

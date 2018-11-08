@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
 import axios from "axios";
 import { FormGroup, ControlLabel, FormControl, HelpBlock, Button, Table } from 'react-bootstrap';
+import Autocomplete from 'react-autocomplete';
+
+const rSItems = require('../assets/rs_items.json');
 
 function FieldGroup({ id, label, help, ...props }) {
   return (
     <FormGroup controlId={id}>
-    <ControlLabel>{label}</ControlLabel>
-    <FormControl {...props} />
-    {help && <HelpBlock>{help}</HelpBlock>}
+      <ControlLabel>{label}</ControlLabel>
+      <FormControl {...props} />
+      {help && <HelpBlock>{help}</HelpBlock>}
     </FormGroup>
   );
 }
@@ -16,28 +19,31 @@ class SingleItem extends Component {
     super(props);
     this.state = {
       itemID: '',
-      item: ''
+      item: '',
+      allItems: rSItems,
+      name: ''
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.itemInformation = this.itemInformation.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleID = this.handleID.bind(this);
 
   }
 
-  componentDidMount(){
-    document.addEventListener("keydown", this.changePrice, false);
-  }
-  componentWillUnmount(){
-    document.removeEventListener("keydown", this.changePrice, false);
+  handleID(e) {
+    console.log(e);
+    this.setState({ name: e });
+    var obj = this.state.allItems.find((element) => {
+      if(element.name === e){
+        this.setState({ itemID: element.id });
+      }
+      return element.name === e;
+    });
   }
 
-  handleChange(e) {
-    console.log(e.target.name + ": " + e.target.value)
-    this.setState({ [e.target.name]: e.target.value });
-  }
-
-  handleSubmit(e) {
+  async handleSubmit(e) {
     e.preventDefault();
+    await this.handleID(this.state.name);
+    //console.log(this.state.name);
     this.itemInformation();
   }
 
@@ -52,53 +58,55 @@ class SingleItem extends Component {
   render() {
     return (
       <div>
-      <p>{this.state.response}</p>
-      <form onSubmit={this.handleSubmit}>
-      <FieldGroup
-      id="formControlsItemID"
-      type="text"
-      value={this.state.value}
-      placeholder="Enter text"
-      onChange={this.handleChange}
-      name="itemID"
-      label="Item ID"
-      />
-      <Button type="submit" bsStyle="primary">Submit</Button>
-      </form>
-      <Table striped bordered condensed hover responsive>
-      <thead>
-      <tr>
-      <th>#</th>
-      <th>Price</th>
-      <th>Minimum</th>
-      <th>Maximum</th>
-      <th>Mean</th>
-      <th>Median</th>
-      <th>Mode</th>
-      <th>Mode Min</th>
-      <th>Mode Max</th>
-      <th>Range</th>
-      <th>Lower Quartile</th>
-      <th>Upper Quartile</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr>
-      <td>{ this.state.itemID }</td>
-      <td>{ this.state.item.price }</td>
-      <td>{ this.state.item.minimum }</td>
-      <td>{ this.state.item.maximum }</td>
-      <td>{ this.state.item.mean }</td>
-      <td>{ this.state.item.median }</td>
-      <td>{ this.state.item.mode}</td>
-      <td>{ this.state.item.modeMin }</td>
-      <td>{ this.state.item.modeMax }</td>
-      <td>{ this.state.item.range }</td>
-      <td>{ this.state.item.lowerQuartile }</td>
-      <td>{ this.state.item.upperQuartile }</td>
-      </tr>
-      </tbody>
-      </Table>
+        <form onSubmit={this.handleSubmit}>
+          <Autocomplete
+            items={this.state.allItems}
+            shouldItemRender={(item, value) => item.name.toLowerCase().indexOf(value.toLowerCase()) > -1}
+            getItemValue={item => item.name}
+            renderItem={(item, highlighted) =>
+              <div
+                key={item.id}
+                style={{ backgroundColor: highlighted ? '#eee' : 'transparent'}}
+                >
+                {item.name}
+              </div>
+            }
+            value={this.state.name}
+            onChange={e => this.setState({ name: e.target.value })}
+            onSelect={value => this.setState({ name: value })}
+            />
+          <Button type="submit" bsStyle="primary">Submit</Button>
+        </form>
+        <Table striped bordered condensed hover responsive>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Price</th>
+              <th>Todays Change</th>
+              <th>Daily Price</th>
+              <th>Average Price</th>
+              <th>Store Price</th>
+              <th>Buy Price</th>
+              <th>Sell Price</th>
+              <th>Buy Quantity</th>
+              <th>Sell Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{ this.state.itemID }</td>
+              <td>{ this.state.item.price }</td>
+              <td>{ this.state.item.todayChange }</td>
+              <td>{ this.state.item.dailyPrice }</td>
+              <td>{ this.state.item.averagePrice }</td>
+              <td>{ this.state.item.storePrice }</td>
+              <td>{ this.state.item.sellPriceAv }</td>
+              <td>{ this.state.item.buyPriceAv }</td>
+              <td>{ this.state.item.buyQ }</td>
+              <td>{ this.state.item.sellQ }</td>
+            </tr>
+          </tbody>
+        </Table>
       </div>
     );
   }
